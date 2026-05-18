@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ElastiCache Cache-Aside Demo</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <main class="container">
+      <h1>ElastiCache Cache-Aside Demo</h1>
+      <p>동일 상품을 반복 조회하면 cache_hit 값이 false → true로 바뀝니다.</p>
+
+      <section class="card">
+        <h2>상품 조회</h2>
+        <label for="productId">상품 ID</label>
+        <input id="productId" type="number" min="1" value="1" />
+        <div class="actions">
+          <button id="healthBtn">헬스 체크</button>
+          <button id="listBtn">전체 상품</button>
+          <button id="getBtn">단건 조회</button>
+          <button id="invalidateBtn">캐시 무효화</button>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>응답</h2>
+        <pre id="output">버튼을 눌러 API를 호출하세요.</pre>
+      </section>
+    </main>
+    <script src="/static/app.js"></script>
+  </body>
+</html>

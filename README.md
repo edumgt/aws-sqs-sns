@@ -9,6 +9,7 @@
 - [SNS 연동](#sns-연동)
 - [마이크로서비스 간 메시지 전달](#마이크로서비스-간-메시지-전달)
 - [민감정보 체크](#민감정보-체크)
+- [ElastiCache Cache-Aside 예제 (DBMS + FE)](#elasticache-cache-aside-예제-dbms--fe)
 
 ---
 
@@ -496,4 +497,60 @@ sudo systemctl start redis
 redis-cli -h <your-ec2-public-ip> -p 6379
 ```
 
+---
+
+## ElastiCache Cache-Aside 예제 (DBMS + FE)
+
+ElastiCache(Valkey/Redis)를 **캐시 계층**, SQLite를 **원본 DBMS 계층**으로 두고,
+Cache-Aside 패턴을 실습할 수 있는 백엔드+프론트엔드 예제를 추가했습니다.
+
+### 예제 구성
+
+| 경로 | 설명 |
+| --- | --- |
+| `elasticache_example/cache_aside_server.py` | API 서버 + Cache-Aside 로직 |
+| `elasticache_example/frontend/index.html` | 브라우저 UI |
+| `elasticache_example/frontend/app.js` | API 호출 스크립트 |
+| `elasticache_example/frontend/styles.css` | UI 스타일 |
+
+### 동작 흐름
+
+1. 사용자가 `GET /api/products/<id>` 호출
+2. Redis 키(`product:<id>`) 조회
+3. 캐시 미스면 SQLite 조회 후 Redis TTL 캐시 저장
+4. 응답에서 `cache_hit` 값으로 히트 여부 확인
+
+### 실행 방법
+
+1) 의존성 설치
+
+```bash
+pip install redis
+```
+
+2) (선택) 로컬 Redis 실행 또는 ElastiCache 엔드포인트 설정
+
+```bash
+export REDIS_HOST=localhost
+export REDIS_PORT=6379
+```
+
+3) 서버 실행
+
+```bash
+python elasticache_example/cache_aside_server.py
+```
+
+4) 브라우저 접속
+
+```text
+http://127.0.0.1:8080
+```
+
+### API 요약
+
+- `GET /api/health` : 캐시 모드 및 TTL 확인
+- `GET /api/products` : 전체 상품 목록
+- `GET /api/products/<id>` : 상품 단건 조회 (`cache_hit` 포함)
+- `POST /api/cache/invalidate?id=<id>` : 캐시 무효화
 

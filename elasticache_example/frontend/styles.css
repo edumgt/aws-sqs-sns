@@ -1,0 +1,62 @@
+:root {
+  color-scheme: light;
+  font-family: "Noto Sans KR", system-ui, -apple-system, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: #f6f8fb;
+  color: #1b2533;
+}
+
+.container {
+  width: min(900px, 92%);
+  margin: 2rem auto;
+}
+
+.card {
+  background: #fff;
+  border: 1px solid #d7deea;
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  flex-wrap: wrap;
+}
+
+button {
+  background: #2459ff;
+  color: #fff;
+  border: 0;
+  border-radius: 8px;
+  padding: 0.55rem 0.85rem;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #1f4de0;
+}
+
+input {
+  margin-top: 0.35rem;
+  width: 120px;
+  padding: 0.45rem;
+}
+
+pre {
+  overflow-x: auto;
+  background: #0e1525;
+  color: #d6e4ff;
+  border-radius: 10px;
+  padding: 0.85rem;
+  min-height: 160px;
+}
