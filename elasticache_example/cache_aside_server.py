@@ -4,8 +4,8 @@ import sqlite3
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-from typing import Any, Optional
 from urllib.parse import parse_qs, urlparse
+from typing import Any, Optional
 
 try:
     import redis
@@ -197,15 +197,15 @@ class RequestHandler(BaseHTTPRequestHandler):
             return
 
         query = parse_qs(parsed.query)
-        raw_product_id = query.get("id", [""])[0]
-        if not raw_product_id.isdigit():
+        product_id_str = query.get("id", [""])[0]
+        if not product_id_str.isdigit():
             self._send_json(
-                {"error": "query parameter 'id' is required"},
+                {"error": "query parameter 'id' must be a numeric value"},
                 status=HTTPStatus.BAD_REQUEST,
             )
             return
 
-        invalidated = self.service.invalidate_cache(int(raw_product_id))
+        invalidated = self.service.invalidate_cache(int(product_id_str))
         self._send_json({"invalidated": invalidated})
 
 
