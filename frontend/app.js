@@ -11,6 +11,7 @@ document.querySelectorAll('.tab').forEach(btn => {
     document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
     btn.classList.add('active');
     document.getElementById(btn.dataset.tab).classList.add('active');
+    if (btn.dataset.tab === 'admin') loadAdminStatus();
   });
 });
 
@@ -127,6 +128,108 @@ async function sendEmail() {
   } catch (e) {
     setStatus(statusEl, `❌ 네트워크 오류: ${e.message}`, 'error');
   }
+}
+
+// ── 관리자 ───────────────────────────────────────────────
+async function loadAdminStatus() {
+  document.getElementById('admin-sqs').innerHTML = '<span class="loading">로딩 중...</span>';
+  document.getElementById('admin-sns').innerHTML = '<span class="loading">로딩 중...</span>';
+  document.getElementById('admin-ses').innerHTML = '<span class="loading">로딩 중...</span>';
+  await Promise.all([fetchSQS(), fetchSNS(), fetchSES()]);
+}
+
+async function fetchSQS() {
+  const el = document.getElementById('admin-sqs');
+  try {
+    const { queues } = await fetch(`${API}/admin/sqs`).then(r => r.json());
+    const rows = queues.map(q => {
+      if (q.status === 'error') {
+        return `<tr><td>${escHtml(q.label)}</td><td colspan="3"><span class="err-text">${escHtml(q.error)}</span></td></tr>`;
+      }
+      const wBadge = countBadge(q.waiting);
+      const fBadge = countBadge(q.in_flight, 'warn');
+      return `<tr>
+        <td class="cell-name">${escHtml(q.label)}</td>
+        <td class="cell-num">${wBadge}</td>
+        <td class="cell-num">${fBadge}</td>
+        <td class="cell-num">${q.retention_days}일</td>
+      </tr>`;
+    }).join('');
+    el.innerHTML = `
+      <table class="status-table">
+        <thead><tr><th>큐 이름</th><th>대기 중</th><th>처리 중</th><th>보관 기간</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>`;
+  } catch (e) {
+    el.innerHTML = `<span class="err-text">오류: ${e.message}</span>`;
+  }
+}
+
+async function fetchSNS() {
+  const el = document.getElementById('admin-sns');
+  try {
+    const data = await fetch(`${API}/admin/sns`).then(r => r.json());
+    if (data.status === 'error') { el.innerHTML = `<span class="err-text">${escHtml(data.error)}</span>`; return; }
+
+    const { topic, subscriptions } = data;
+    const subRows = subscriptions.map(s => `
+      <tr>
+        <td><span class="proto-tag">${escHtml(s.protocol)}</span></td>
+        <td class="cell-endpoint">${escHtml(s.endpoint)}</td>
+        <td>${s.confirmed ? '<span class="pill ok">확인됨</span>' : '<span class="pill warn">대기 중</span>'}</td>
+      </tr>`).join('') || '<tr><td colspan="3" class="empty-row">구독 없음</td></tr>';
+
+    el.innerHTML = `
+      <div class="stat-row">
+        <div class="stat-card"><span class="stat-val">${topic.confirmed}</span><span class="stat-label">구독 확인됨</span></div>
+        <div class="stat-card warn"><span class="stat-val">${topic.pending}</span><span class="stat-label">구독 대기 중</span></div>
+        <div class="stat-card muted"><span class="stat-val">${topic.deleted}</span><span class="stat-label">구독 삭제됨</span></div>
+      </div>
+      <table class="status-table mt-8">
+        <thead><tr><th>프로토콜</th><th>엔드포인트</th><th>상태</th></tr></thead>
+        <tbody>${subRows}</tbody>
+      </table>`;
+  } catch (e) {
+    el.innerHTML = `<span class="err-text">오류: ${e.message}</span>`;
+  }
+}
+
+async function fetchSES() {
+  const el = document.getElementById('admin-ses');
+  try {
+    const data = await fetch(`${API}/admin/ses`).then(r => r.json());
+    if (data.status === 'error') { el.innerHTML = `<span class="err-text">${escHtml(data.error)}</span>`; return; }
+
+    const { quota, identities } = data;
+    const pct = quota.max_24h > 0 ? ((quota.sent_24h / quota.max_24h) * 100).toFixed(1) : 0;
+    const idRows = identities.map(i => `
+      <tr>
+        <td>${escHtml(i.email)}</td>
+        <td>${i.verified ? '<span class="pill ok">인증됨</span>' : '<span class="pill warn">미인증</span>'}</td>
+      </tr>`).join('') || '<tr><td colspan="2" class="empty-row">인증된 이메일 없음</td></tr>';
+
+    el.innerHTML = `
+      <div class="stat-row">
+        <div class="stat-card"><span class="stat-val">${quota.sent_24h.toLocaleString()}</span><span class="stat-label">오늘 발송</span></div>
+        <div class="stat-card muted"><span class="stat-val">${quota.max_24h.toLocaleString()}</span><span class="stat-label">24h 한도</span></div>
+        <div class="stat-card muted"><span class="stat-val">${quota.max_rate}/초</span><span class="stat-label">최대 발송률</span></div>
+      </div>
+      <div class="quota-bar-wrap">
+        <div class="quota-bar" style="width:${pct}%"></div>
+        <span class="quota-label">${pct}% 사용</span>
+      </div>
+      <table class="status-table mt-8">
+        <thead><tr><th>이메일</th><th>인증 상태</th></tr></thead>
+        <tbody>${idRows}</tbody>
+      </table>`;
+  } catch (e) {
+    el.innerHTML = `<span class="err-text">오류: ${e.message}</span>`;
+  }
+}
+
+function countBadge(n, variant = '') {
+  const cls = n > 0 ? (variant === 'warn' ? 'pill warn' : 'pill ok') : 'pill muted';
+  return `<span class="${cls}">${n}</span>`;
 }
 
 // ── 유틸 ────────────────────────────────────────────────

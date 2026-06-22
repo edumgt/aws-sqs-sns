@@ -24,6 +24,9 @@
       <button class="tab" data-tab="email">
         <span class="tab-icon">✉️</span> 이메일 발송
       </button>
+      <button class="tab" data-tab="admin">
+        <span class="tab-icon">⚙️</span> 관리자
+      </button>
     </nav>
 
     <!-- SQS 채팅 -->
@@ -85,6 +88,35 @@
       </div>
       <button class="btn-primary" onclick="sendEmail()">이메일 발송</button>
       <p id="email-status" class="status"></p>
+    </section>
+
+    <!-- 관리자 -->
+    <section id="admin" class="panel">
+      <div class="panel-header">
+        <strong>서비스 상태 모니터링</strong>
+        <button class="btn-refresh" onclick="loadAdminStatus()">새로고침</button>
+      </div>
+
+      <div class="admin-block">
+        <div class="admin-block-title">
+          <span class="svc-tag sqs">SQS</span> 큐 상태
+        </div>
+        <div id="admin-sqs"><span class="loading">로딩 중...</span></div>
+      </div>
+
+      <div class="admin-block">
+        <div class="admin-block-title">
+          <span class="svc-tag sns">SNS</span> 토픽 &amp; 구독
+        </div>
+        <div id="admin-sns"><span class="loading">로딩 중...</span></div>
+      </div>
+
+      <div class="admin-block">
+        <div class="admin-block-title">
+          <span class="svc-tag ses">SES</span> 발송 현황
+        </div>
+        <div id="admin-ses"><span class="loading">로딩 중...</span></div>
+      </div>
     </section>
   </div>
 

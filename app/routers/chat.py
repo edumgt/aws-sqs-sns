@@ -1,12 +1,12 @@
-from fastapi import APIRouter
-from pydantic import BaseModel
-import boto3
 import json
 from datetime import datetime, timezone
 
+from fastapi import APIRouter
+from pydantic import BaseModel
+
+from app.services.sqs import CHAT_QUEUE_URL, delete, receive, send
+
 router = APIRouter()
-sqs = boto3.client('sqs', region_name='ap-northeast-2')
-QUEUE_URL = 'https://sqs.ap-northeast-2.amazonaws.com/086015456585/my-test-queue'
 
 
 class ChatMessage(BaseModel):
@@ -16,27 +16,18 @@ class ChatMessage(BaseModel):
 
 @router.post("/send")
 def send_message(msg: ChatMessage):
-    body = {
-        "username": msg.username,
-        "text": msg.text,
-        "time": datetime.now(timezone.utc).strftime('%H:%M:%S'),
-    }
-    sqs.send_message(QueueUrl=QUEUE_URL, MessageBody=json.dumps(body, ensure_ascii=False))
+    body = {"username": msg.username, "text": msg.text, "time": datetime.now(timezone.utc).strftime('%H:%M:%S')}
+    send(CHAT_QUEUE_URL, body)
     return {"ok": True}
 
 
 @router.get("/messages")
 def receive_messages():
-    resp = sqs.receive_message(
-        QueueUrl=QUEUE_URL,
-        MaxNumberOfMessages=10,
-        WaitTimeSeconds=2,
-    )
     messages = []
-    for m in resp.get('Messages', []):
+    for m in receive(CHAT_QUEUE_URL, max_messages=10, wait_seconds=2):
         try:
-            messages.append(json.loads(m['Body']))
+            messages.append(json.loads(m["Body"]))
         except json.JSONDecodeError:
-            messages.append({"username": "?", "text": m['Body'], "time": ""})
-        sqs.delete_message(QueueUrl=QUEUE_URL, ReceiptHandle=m['ReceiptHandle'])
+            messages.append({"username": "?", "text": m["Body"], "time": ""})
+        delete(CHAT_QUEUE_URL, m["ReceiptHandle"])
     return {"messages": messages}

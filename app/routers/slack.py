@@ -4,17 +4,16 @@ import urllib.error
 import urllib.request
 from datetime import datetime, timezone
 
-import boto3
+from dotenv import load_dotenv
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
+from app.services.sns import publish
+
+load_dotenv()
+
 router = APIRouter()
-sns = boto3.client('sns', region_name='ap-northeast-2')
-SNS_TOPIC_ARN = 'arn:aws:sns:ap-northeast-2:086015456585:my-sns-topic'
-SLACK_WEBHOOK_URL = os.environ.get(
-    'SLACK_WEBHOOK_URL',
-    'https://hooks.slack.com/services/xxxxx',
-)
+SLACK_WEBHOOK_URL = os.environ.get('SLACK_WEBHOOK_URL', '')
 
 
 class SlackRequest(BaseModel):
@@ -24,11 +23,10 @@ class SlackRequest(BaseModel):
 
 @router.post("/send")
 def send_to_slack(req: SlackRequest):
-    resp = sns.publish(TopicArn=SNS_TOPIC_ARN, Subject=req.subject, Message=req.message)
-    message_id = resp['MessageId']
-
     if not SLACK_WEBHOOK_URL:
         raise HTTPException(status_code=500, detail="SLACK_WEBHOOK_URL이 설정되지 않았습니다.")
+
+    message_id = publish(req.subject, req.message)
 
     timestamp = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')
     payload = {
