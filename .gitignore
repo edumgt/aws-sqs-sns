@@ -20,3 +20,4 @@ target/
 *.iml
 __pycache__/
 .env
+elasticache_env.env
