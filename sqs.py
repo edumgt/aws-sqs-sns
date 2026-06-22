@@ -6,8 +6,8 @@ import json
 sqs = boto3.client('sqs', region_name='ap-northeast-2')
 
 # 사용 중인 SQS Queue URL
-# QUEUE_URL = 'https://sqs.ap-northeast-2.amazonaws.com/086015456585/my-test-queue'
-QUEUE_URL = 'https://sqs.ap-northeast-2.amazonaws.com/086015456585/my-sns-queue'
+QUEUE_URL = 'https://sqs.ap-northeast-2.amazonaws.com/086015456585/my-test-queue'
+# QUEUE_URL = 'https://sqs.ap-northeast-2.amazonaws.com/086015456585/my-sns-queue'
 
 def send_message(message_body: dict):
     """메시지 전송 함수"""
@@ -53,7 +53,7 @@ def receive_message():
 # 테스트 실행
 if __name__ == "__main__":
     # 1. 메시지 보내기
-    send_message({"message":"python으로 테스트 합니다."})
+    send_message({"message":"python 으로 테스트 합니다. !!!! @@@@ #### "})
 
     # 2. 메시지 받기
-    # receive_message()
+    receive_message()

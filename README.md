@@ -38,9 +38,11 @@
 
 ```bash
 aws s3api put-bucket-policy \
-  --bucket <bucket-name> \
+  --bucket edumgt-java-education \
   --policy file://s3-policy.json
 ```
+
+
 
 ---
 
@@ -75,7 +77,7 @@ sqs:CreateQueue on resource: arn:aws:sqs:<region>:<account-id>:my-test-queue
 ### 메시지 보내기
 ```bash
 aws sqs send-message \
-  --queue-url https://sqs.<region>.amazonaws.com/<account-id>/my-test-queue \
+  --queue-url https://sqs.ap-northeast-2.amazonaws.com/086015456585/my-test-queue \
   --message-body '안녕하세요! 이건 테스트 메시지입니다.'
 ```
 
@@ -91,7 +93,7 @@ aws sqs send-message \
 ### 메시지 수신
 ```bash
 aws sqs receive-message \
-  --queue-url https://sqs.<region>.amazonaws.com/<account-id>/my-test-queue
+  --queue-url https://sqs.ap-northeast-2.amazonaws.com/086015456585/my-test-queue
 ```
 
 ```json
@@ -110,10 +112,10 @@ aws sqs receive-message \
 ### 무결성 체크 (check.py)
 `check.py`에서 `body = '안녕하세요! 이건 테스트 메시지입니다.'`를 변경해가며 확인 가능합니다.
 
-```text
-PS> python check.py
+```bash
+python3 check.py
 ❌ 메시지가 손상되었거나 변조되었습니다.
-PS> python check.py
+python3 check.py
 ✅ 메시지 무결성 확인됨!
 ```
 
@@ -173,6 +175,8 @@ SNS:CreateTopic on resource: arn:aws:sns:<region>:<account-id>:my-sns-topic
 ### 권한 부여 화면
 ![SNS 권한 부여](images/image-3.png)
 
+![alt text](image.png)
+
 ### ARN 생성 결과 예시
 ```json
 {
@@ -194,9 +198,9 @@ aws sqs create-queue --queue-name my-sns-queue
 ### 구독자 생성
 ```bash
 aws sns subscribe \
-  --topic-arn arn:aws:sns:<region>:<account-id>:my-sns-topic \
+  --topic-arn arn:aws:sns:ap-northeast-2:086015456585:my-sns-topic \
   --protocol sqs \
-  --notification-endpoint arn:aws:sqs:<region>:<account-id>:my-sns-queue
+  --notification-endpoint arn:aws:sqs:ap-northeast-2:086015456585:my-sns-queue
 ```
 
 ```json
@@ -219,7 +223,7 @@ aws sqs set-queue-attributes --cli-input-json file://sqs-policy.json
 
 ```bash
 aws sqs get-queue-attributes \
-  --queue-url https://sqs.<region>.amazonaws.com/<account-id>/my-sns-queue \
+  --queue-url https://sqs.ap-northeast-2.amazonaws.com/086015456585/my-sns-queue \
   --attribute-names Policy
 ```
 
@@ -234,7 +238,7 @@ aws sqs get-queue-attributes \
 ### 메시지 발행
 ```bash
 aws sns publish \
-  --topic-arn arn:aws:sns:<region>:<account-id>:my-sns-topic \
+  --topic-arn arn:aws:sns:ap-northeast-2:086015456585:my-sns-topic \
   --message '안녕하세요! SNS에서 보내는 메시지입니다.'
 ```
 
@@ -245,6 +249,60 @@ aws sns publish \
 ```python
 QUEUE_URL = 'https://sqs.<region>.amazonaws.com/<account-id>/my-sns-queue'
 ```
+
+---
+
+## SNS → Slack 연동
+
+SNS 발행과 Slack 전송을 **Python(boto3 + 표준 라이브러리)만으로** 처리합니다. Lambda 불필요.
+
+### 아키텍처
+
+```
+[sns_publish.py]
+   ├─ boto3 → SNS 토픽 발행 (my-sns-topic)
+   └─ urllib → Slack Incoming Webhook → Slack 채널
+```
+
+### 1단계 — Slack Incoming Webhook 생성
+
+1. [api.slack.com/apps](https://api.slack.com/apps) → **Create New App** → From scratch
+2. **Incoming Webhooks** → **Activate Incoming Webhooks** ON
+3. **Add New Webhook to Workspace** → 채널 선택
+4. Webhook URL 복사 (`https://hooks.slack.com/services/...`)
+
+### 2단계 — Webhook URL 설정
+
+`sns_publish.py` 상단의 값을 변경합니다.
+
+```python
+SLACK_WEBHOOK_URL = 'https://hooks.slack.com/services/생략'
+```
+
+### 3단계 — 실행
+
+```bash
+python sns_publish.py
+```
+
+```text
+✅ SNS 발행 완료 — MessageId: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+✅ Slack 전송 완료 — 200
+```
+
+Slack 채널에서 확인:
+
+```
+[알림] 서버 이벤트 발생
+SNS → Slack 연동 테스트 메시지입니다.
+AWS SNS | 2026-06-22 09:00:00 UTC | `xxxxxxxx-...`
+```
+
+### 관련 파일
+
+| 파일 | 설명 |
+| --- | --- |
+| `sns_publish.py` | SNS 발행 + Slack 전송 (boto3 + urllib) |
 
 ---
 

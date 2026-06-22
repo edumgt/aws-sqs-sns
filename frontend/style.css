@@ -1,0 +1,183 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: #f0f2f5;
+  min-height: 100vh;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 32px 16px;
+}
+
+.container {
+  width: 100%;
+  max-width: 760px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.10);
+  overflow: hidden;
+}
+
+/* Header */
+header {
+  background: #232f3e;
+  color: #fff;
+  padding: 20px 28px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.logo {
+  background: #ff9900;
+  color: #232f3e;
+  font-weight: 800;
+  font-size: 0.75rem;
+  padding: 3px 7px;
+  border-radius: 4px;
+  letter-spacing: 0.5px;
+}
+header h1 { font-size: 1.25rem; font-weight: 600; }
+header p { font-size: 0.8rem; color: #99a5b1; margin-left: auto; }
+
+/* Tabs */
+.tabs {
+  display: flex;
+  background: #f8f8f8;
+  border-bottom: 1px solid #e8e8e8;
+}
+.tab {
+  flex: 1;
+  padding: 13px 8px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 0.88rem;
+  color: #666;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border-bottom: 2px solid transparent;
+  transition: color 0.15s, border-color 0.15s;
+}
+.tab:hover { color: #ff9900; }
+.tab.active { color: #ff9900; border-bottom-color: #ff9900; font-weight: 600; background: #fff; }
+.tab-icon { font-size: 1rem; }
+
+/* Panel */
+.panel { display: none; padding: 24px 28px; }
+.panel.active { display: block; }
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+.panel-header strong { font-size: 1rem; color: #232f3e; }
+.badge {
+  background: #e8f4fd;
+  color: #0073bb;
+  font-size: 0.72rem;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-family: monospace;
+}
+
+/* Chat */
+#chat-messages {
+  height: 380px;
+  overflow-y: auto;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  padding: 14px;
+  background: #fafafa;
+  margin-bottom: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.msg-bubble {
+  display: flex;
+  flex-direction: column;
+  max-width: 78%;
+}
+.msg-bubble.me { align-self: flex-end; align-items: flex-end; }
+.msg-bubble.other { align-self: flex-start; align-items: flex-start; }
+.msg-meta { font-size: 0.72rem; color: #999; margin-bottom: 3px; }
+.msg-text {
+  padding: 9px 13px;
+  border-radius: 16px;
+  font-size: 0.88rem;
+  line-height: 1.4;
+  word-break: break-word;
+}
+.msg-bubble.me .msg-text { background: #ff9900; color: #fff; border-bottom-right-radius: 4px; }
+.msg-bubble.other .msg-text { background: #e8e8e8; color: #333; border-bottom-left-radius: 4px; }
+.chat-empty { color: #bbb; font-size: 0.85rem; text-align: center; margin: auto; }
+
+.chat-input-row {
+  display: flex;
+  gap: 8px;
+}
+#username {
+  width: 110px;
+  flex-shrink: 0;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 0.88rem;
+}
+#username:focus { outline: none; border-color: #ff9900; }
+#chat-text {
+  flex: 1;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 0.88rem;
+}
+#chat-text:focus { outline: none; border-color: #ff9900; }
+
+/* Form */
+.form-group { margin-bottom: 14px; }
+.form-group label { display: block; font-size: 0.8rem; color: #555; margin-bottom: 5px; font-weight: 500; }
+.form-group input, .form-group textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 0.88rem;
+  font-family: inherit;
+  color: #333;
+  transition: border-color 0.15s;
+}
+.form-group input:focus, .form-group textarea:focus { outline: none; border-color: #ff9900; }
+textarea { height: 120px; resize: vertical; }
+.form-row { display: flex; gap: 14px; }
+.form-row .form-group { flex: 1; }
+
+/* Button */
+button, .btn-primary {
+  padding: 10px 22px;
+  background: #ff9900;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.88rem;
+  font-weight: 600;
+  transition: background 0.15s;
+}
+button:hover, .btn-primary:hover { background: #e68900; }
+button:active { background: #cc7a00; }
+
+/* Status */
+.status {
+  margin-top: 12px;
+  font-size: 0.85rem;
+  min-height: 20px;
+  color: #333;
+}
+.status.success { color: #1a8a2e; }
+.status.error { color: #c7303b; }

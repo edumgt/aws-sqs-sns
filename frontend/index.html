@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AWS Messaging Demo</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+    <header>
+      <span class="logo">AWS</span>
+      <h1>Messaging Demo</h1>
+      <p>SQS · SNS · SES</p>
+    </header>
+
+    <nav class="tabs">
+      <button class="tab active" data-tab="chat">
+        <span class="tab-icon">💬</span> SQS 채팅
+      </button>
+      <button class="tab" data-tab="slack">
+        <span class="tab-icon">📢</span> SNS → Slack
+      </button>
+      <button class="tab" data-tab="email">
+        <span class="tab-icon">✉️</span> 이메일 발송
+      </button>
+    </nav>
+
+    <!-- SQS 채팅 -->
+    <section id="chat" class="panel active">
+      <div class="panel-header">
+        <strong>SQS 채팅</strong>
+        <span class="badge">my-test-queue</span>
+      </div>
+      <div id="chat-messages"></div>
+      <div class="chat-input-row">
+        <input id="username" placeholder="이름" maxlength="20" />
+        <input id="chat-text" placeholder="메시지 입력..." maxlength="200"
+               onkeydown="if(event.key==='Enter') sendChat()" />
+        <button onclick="sendChat()">전송</button>
+      </div>
+    </section>
+
+    <!-- SNS → Slack -->
+    <section id="slack" class="panel">
+      <div class="panel-header">
+        <strong>SNS → Slack</strong>
+        <span class="badge">my-sns-topic</span>
+      </div>
+      <div class="form-group">
+        <label>제목</label>
+        <input id="slack-subject" placeholder="[알림] 서버 이벤트 발생" />
+      </div>
+      <div class="form-group">
+        <label>메시지</label>
+        <textarea id="slack-message" placeholder="Slack으로 전송할 내용을 입력하세요."></textarea>
+      </div>
+      <button class="btn-primary" onclick="sendSlack()">Slack으로 전송</button>
+      <p id="slack-status" class="status"></p>
+    </section>
+
+    <!-- 이메일 발송 -->
+    <section id="email" class="panel">
+      <div class="panel-header">
+        <strong>이메일 발송</strong>
+        <span class="badge">AWS SES</span>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>발신 이메일 (SES 인증 필요)</label>
+          <input id="from-email" type="email" placeholder="sender@example.com" />
+        </div>
+        <div class="form-group">
+          <label>수신 이메일</label>
+          <input id="to-email" type="email" placeholder="receiver@example.com" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label>제목</label>
+        <input id="email-subject" placeholder="이메일 제목" />
+      </div>
+      <div class="form-group">
+        <label>본문</label>
+        <textarea id="email-message" placeholder="이메일 본문을 입력하세요."></textarea>
+      </div>
+      <button class="btn-primary" onclick="sendEmail()">이메일 발송</button>
+      <p id="email-status" class="status"></p>
+    </section>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
