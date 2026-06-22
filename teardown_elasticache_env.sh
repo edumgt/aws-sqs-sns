@@ -4,7 +4,8 @@
 # ElastiCache 캐시 서버 및 VPC 관련 리소스 전체 삭제
 #
 # 삭제 순서:
-#   1. ElastiCache 클러스터 / 복제 그룹
+#   1. ElastiCache 클러스터 / 복제 그룹 (명시 지정 + 서브넷 그룹 연결 전체)
+#      - edumgt-redis  (clustercfg.edumgt-redis.7c7abo.apn2.cache.amazonaws.com)
 #   2. ElastiCache 서브넷 그룹
 #   3. 보안 그룹
 #   4. 라우팅 테이블 (연결 해제 → 삭제)
@@ -51,6 +52,58 @@ fi
 # ── 1. ElastiCache 클러스터 / 복제 그룹 삭제 ─────────────────────────────────
 step "1/7" "ElastiCache 클러스터 및 복제 그룹 삭제..."
 
+# ── 1-A. 명시 지정 클러스터 삭제 ─────────────────────────────────────────────
+# 엔드포인트: clustercfg.edumgt-redis.7c7abo.apn2.cache.amazonaws.com
+NAMED_CLUSTERS=("edumgt-redis")
+
+for TARGET in "${NAMED_CLUSTERS[@]}"; do
+  echo "  [명시] 복제 그룹 삭제 시도: $TARGET"
+
+  # 복제 그룹으로 삭제 시도
+  if aws elasticache describe-replication-groups \
+      --replication-group-id "$TARGET" \
+      --region "$REGION" > /dev/null 2>&1; then
+    aws elasticache delete-replication-group \
+      --replication-group-id "$TARGET" \
+      --region "$REGION" > /dev/null 2>&1 \
+      && ok "복제 그룹 삭제 요청: $TARGET" \
+      || warn "삭제 실패: $TARGET"
+  else
+    # 단독 캐시 클러스터로 삭제 시도
+    aws elasticache delete-cache-cluster \
+      --cache-cluster-id "$TARGET" \
+      --region "$REGION" > /dev/null 2>&1 \
+      && ok "캐시 클러스터 삭제 요청: $TARGET" \
+      || warn "없거나 이미 삭제됨: $TARGET"
+  fi
+
+  # 서버리스 캐시로도 삭제 시도
+  aws elasticache delete-serverless-cache \
+    --serverless-cache-name "$TARGET" \
+    --region "$REGION" > /dev/null 2>&1 \
+    && ok "서버리스 캐시 삭제 요청: $TARGET" \
+    || true
+done
+
+# 명시 클러스터 삭제 완료 대기
+echo "  명시 클러스터 삭제 완료 대기 중..."
+WAIT_SEC=0
+for TARGET in "${NAMED_CLUSTERS[@]}"; do
+  while aws elasticache describe-replication-groups \
+      --replication-group-id "$TARGET" \
+      --region "$REGION" > /dev/null 2>&1; do
+    if [ $WAIT_SEC -ge 600 ]; then
+      warn "10분 초과 — $TARGET 아직 삭제 중"
+      break
+    fi
+    echo -ne "\r  대기 중... ${WAIT_SEC}s  ($TARGET)"
+    sleep 15
+    WAIT_SEC=$((WAIT_SEC + 15))
+  done
+done
+[ $WAIT_SEC -gt 0 ] && echo -e "\r  ${GREEN}✔${NC}  명시 클러스터 삭제 완료                    "
+
+# ── 1-B. 서브넷 그룹 기준 나머지 클러스터 삭제 ───────────────────────────────
 # 복제 그룹(Replication Group) 검색 — 서브넷 그룹 기준
 RG_IDS=$(aws elasticache describe-replication-groups \
   --region "$REGION" \
@@ -198,7 +251,8 @@ echo "================================================"
 echo -e "  ${GREEN}삭제 완료${NC}"
 echo "================================================"
 echo "  삭제된 리소스:"
-echo "    ElastiCache 클러스터/복제 그룹"
+echo "    ElastiCache (명시): edumgt-redis
+    ElastiCache (서브넷 그룹 연결 전체)"
 echo "    ElastiCache 서브넷 그룹 : ${ELASTICACHE_SUBNET_GROUP}"
 echo "    보안 그룹               : ${SECURITY_GROUP_ID}"
 echo "    라우팅 테이블           : ${ROUTE_TABLE_ID}"

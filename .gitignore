@@ -21,3 +21,5 @@ target/
 __pycache__/
 .env
 elasticache_env.env
+*.pem
+start_tunnel.sh

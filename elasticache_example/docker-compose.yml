@@ -1,0 +1,20 @@
+services:
+  cache-server:
+    image: python:3.12-slim
+    working_dir: /app
+    volumes:
+      - .:/app
+    command: >
+      bash -c "pip install redis --quiet && python cache_aside_server.py"
+    environment:
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      SERVER_HOST: 0.0.0.0
+    ports:
+      - "8080:8080"
+    networks:
+      - shared-net
+
+networks:
+  shared-net:
+    external: true

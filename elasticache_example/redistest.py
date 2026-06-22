@@ -2,10 +2,11 @@ import redis
 import sys
 import socket
 
-# ElastiCache Redis 엔드포인트와 포트
-# REDIS_HOST = "edumgt-redis-7c7abo.serverless.apn2.cache.amazonaws.com"
-REDIS_HOST = "clustercfg.redis-server.7c7abo.apn2.cache.amazonaws.com"
-REDIS_PORT = 6379
+# SSH 터널 사용 시: REDIS_HOST = "localhost"  (bash start_tunnel.sh 실행 후)
+# 직접 연결 시    : REDIS_HOST = "실제 ElastiCache 엔드포인트"
+import os
+REDIS_HOST = os.environ.get("REDIS_HOST", "localhost")
+REDIS_PORT = int(os.environ.get("REDIS_PORT", 6379))
 
 try:
     # Redis 클라이언트 생성
